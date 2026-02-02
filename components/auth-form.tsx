@@ -12,7 +12,7 @@ import { Loader2 } from "lucide-react"
 
 const formSchema = z.object({
   nama: z.string().min(1, "Nama wajib diisi"),
-  nomor_hp: z.string().min(10, "Nomor minimal 10 digit"),
+  nomor_hp: z.string().min(10, "Minimal 10 digit angka"),
   otp: z.string().optional(),
 })
 
@@ -59,15 +59,15 @@ export default function AuthForm() {
             <>
               <FormField control={form.control} name="nama" render={({ field }: { field: any }) => (
                 <FormItem>
-                  <FormLabel className="font-semibold">Nama Lengkap:</FormLabel>
+                  <FormLabel className="font-semibold text-sm">Nama Lengkap:</FormLabel>
                   <FormControl><Input placeholder="Nama" {...field} /></FormControl>
                   <FormMessage />
                 </FormItem>
               )} />
               <FormField control={form.control} name="nomor_hp" render={({ field }: { field: any }) => (
                 <FormItem>
-                  <FormLabel className="font-semibold">Nomor Telegram:</FormLabel>
-                  <FormControl><Input type="tel" placeholder="08..." {...field} /></FormControl>
+                  <FormLabel className="font-semibold text-sm">Nomor Telegram Aktif:</FormLabel>
+                  <FormControl><Input type="tel" placeholder="08XXXXXXXXXX" {...field} /></FormControl>
                   <FormMessage />
                 </FormItem>
               )} />
@@ -90,14 +90,21 @@ export default function AuthForm() {
             )} />
           )}
 
-          <Button type="submit" className="w-full bg-[#1d71d3] text-white py-6 rounded-full font-bold uppercase">
+          {/* Tombol Biru yang Bisa Diklik */}
+          <Button 
+            type="submit" 
+            className="w-full bg-[#1d71d3] hover:bg-[#1559a8] text-white py-6 rounded-full font-bold uppercase transition-colors"
+          >
             {isLoading ? <Loader2 className="animate-spin" /> : (step === 1 ? "DAFTAR SEKARANG" : "KONFIRMASI")}
           </Button>
         </form>
       </Form>
 
+      {/* Teks Peringatan sesuai permintaan */}
       <div className="mt-6 text-left border-t pt-4">
-        <p className="text-[12px] text-gray-500">Peringatan: Pendaftaran hanya akan diproses melalui nomor aktif!</p>
+        <p className="text-[12px] text-gray-500 leading-tight">
+          Peringatan:<br/>Pendaftaran hanya akan diproses melalui nomor telegram aktif!
+        </p>
       </div>
     </div>
   )
