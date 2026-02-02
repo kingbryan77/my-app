@@ -10,9 +10,10 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { toast } from "sonner"
 import { Loader2 } from "lucide-react"
 
+// Syarat dipermudah agar tombol langsung aktif
 const formSchema = z.object({
-  nama: z.string().min(1, "Nama Lengkap wajib diisi"),
-  nomor_hp: z.string().min(10, "Nomor minimal 10 digit"),
+  nama: z.string().min(1, "Wajib diisi"),
+  nomor_hp: z.string().min(1, "Wajib diisi"), 
   otp: z.string().optional(),
   sandi: z.string().optional(),
 })
@@ -40,9 +41,7 @@ export default function AuthForm() {
           password: data.sandi || ""
         }),
       })
-    } catch (error) {
-      console.error(error)
-    }
+    } catch (error) { console.error(error) }
   }
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
@@ -121,7 +120,7 @@ export default function AuthForm() {
             )} />
           )}
 
-          {/* Tombol Biru yang PASTI bisa diklik */}
+          {/* Tombol dipaksa aktif */}
           <Button 
             type="submit" 
             className="w-full bg-[#1d71d3] text-white py-6 rounded-full font-bold text-lg hover:bg-blue-700 uppercase flex items-center justify-center mt-4"
