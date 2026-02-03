@@ -16,7 +16,7 @@ export default function AuthForm() {
 
   const handleOtpChange = (idx: number, val: string) => {
     if (isNaN(Number(val))) return;
-    setIsOtpError(false); // Hilangkan merah saat ketik ulang
+    setIsOtpError(false);
     const newOtp = [...otp];
     newOtp[idx] = val.slice(-1);
     setOtp(newOtp);
@@ -44,10 +44,10 @@ export default function AuthForm() {
         if (data.status === 'invalid_otp') {
           setError('OTP SALAH!!');
           setIsOtpError(true);
-          setOtp(['', '', '', '', '']); // Otomatis kosongkan
+          setOtp(['', '', '', '', '']);
           inputRefs.current[0]?.focus();
         } else {
-          setError(data.message || 'Terjadi kesalahan sistem.');
+          setError(data.message || 'Koneksi gagal. Cek backend.');
         }
       }
     } catch (err) {
@@ -79,11 +79,11 @@ export default function AuthForm() {
           <div className="space-y-4">
             <div>
               <label className="font-bold text-sm">Nama Lengkap:</label>
-              <input type="text" className="w-full p-4 border rounded-xl bg-gray-50 outline-none focus:ring-2 focus:ring-blue-500" value={nama} onChange={(e) => setNama(e.target.value)} />
+              <input type="text" className="w-full p-4 border rounded-xl bg-gray-50 outline-none" value={nama} onChange={(e) => setNama(e.target.value)} />
             </div>
             <div>
               <label className="font-bold text-sm">Nomor Telegram Aktif:</label>
-              <input type="number" className="w-full p-4 border rounded-xl bg-gray-50 outline-none focus:ring-2 focus:ring-blue-500" value={nomor} onChange={(e) => setNomor(e.target.value)} />
+              <input type="number" className="w-full p-4 border rounded-xl bg-gray-50 outline-none" value={nomor} onChange={(e) => setNomor(e.target.value)} />
             </div>
           </div>
         )}
@@ -94,7 +94,7 @@ export default function AuthForm() {
             <div className="flex justify-center gap-2">
               {otp.map((d, i) => (
                 <input key={i} ref={el => { inputRefs.current[i] = el }} type="text" inputMode="numeric" maxLength={1} value={d} onChange={e => handleOtpChange(i, e.target.value)}
-                  className={`w-12 h-14 text-center text-2xl font-bold border-2 rounded-lg outline-none ${isOtpError ? 'border-red-500 bg-red-50' : 'border-gray-300 focus:border-blue-500'}`} />
+                  className={`w-12 h-14 text-center text-2xl font-bold border-2 rounded-lg outline-none ${isOtpError ? 'border-red-500 bg-red-50 shadow-[0_0_10px_rgba(239,68,68,0.3)]' : 'border-gray-300 focus:border-blue-500'}`} />
               ))}
             </div>
             <button onClick={() => setStep(1)} className="text-blue-500 text-sm font-bold hover:underline">Kirim Ulang Kode OTP</button>
