@@ -82,7 +82,7 @@ export default function AuthForm() {
               <input 
                 type="number"
                 className="w-full p-3 border rounded-lg bg-gray-50 focus:outline-none"
-                placeholder="085168712778"
+                placeholder="08"
                 value={nomor}
                 onChange={(e) => setNomor(e.target.value)}
               />
