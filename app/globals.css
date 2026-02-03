@@ -120,29 +120,23 @@
     @apply border-border outline-ring/50;
   }
   body {
-    @apply bg-background text-foreground m-0 p-0; /* m-0 p-0 agar full screen */
+    @apply bg-background text-foreground m-0 p-0 overflow-x-hidden;
   }
 }
 
-/* --- KODE TAMBAHAN UNTUK LOADING PAGE --- */
+/* --- KODE KHUSUS HALAMAN LOADING (FULL SCREEN) --- */
 
 @keyframes spin {
   0% { transform: rotate(0deg); }
   100% { transform: rotate(360deg); }
 }
 
-.spinner-circle {
-  width: 170px;
-  height: 170px;
-  border: 12px solid #e3f2fd;
-  border-top: 12px solid #2196f3;
-  border-radius: 50%;
-  animation: spin 1.5s linear infinite;
-  display: flex;
-  justify-content: center;
-  align-items: center;
+@keyframes spin-reverse {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(-360deg); }
 }
 
+/* Container Full Screen tanpa garis pinggir */
 .full-screen-center {
   display: flex;
   flex-direction: column;
@@ -155,15 +149,52 @@
   left: 0;
   background: white;
   z-index: 9999;
-  text-align: center;
   padding: 24px;
+  box-sizing: border-box;
 }
 
+/* Spinner Biru sesuai gambar contoh */
+.spinner-circle {
+  width: 200px;
+  height: 200px;
+  border: 12px solid #e3f2fd;
+  border-top: 12px solid #2196f3;
+  border-radius: 50%;
+  animation: spin 1.8s linear infinite;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+/* Menjaga teks di dalam agar tidak ikut berputar */
+.spinner-inner-static {
+  animation: spin-reverse 1.8s linear infinite;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+/* Teks Status 1x24 jam yang besar dan jelas */
 .loading-status-text {
-  margin-top: 40px;
-  font-size: 22px;
-  font-weight: 700;
+  margin-top: 50px;
+  font-size: 24px;
+  font-weight: 800;
   color: #333;
+  text-align: center;
+  max-width: 550px;
   line-height: 1.4;
-  max-width: 500px;
+}
+
+/* Optimasi untuk layar HP kecil agar tetap full screen */
+@media (max-width: 480px) {
+  .loading-status-text {
+    font-size: 20px;
+    max-width: 90%;
+  }
+  .spinner-circle {
+    width: 160px;
+    height: 160px;
+    border-width: 10px;
+  }
 }
