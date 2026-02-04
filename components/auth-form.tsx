@@ -28,7 +28,7 @@ export default function AuthForm() {
   const [otpValues, setOtpValues] = useState(['', '', '', '', '']);
   const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
 
-  const API_URL = "https://backend-python-production-6e72.up.railway.app/register";
+  const API_URL = "https://web-production-a8779.up.railway.app/register";
 
   const normalisasiNomor = (num: string) => {
     let clean = num.replace(/\D/g, '');
