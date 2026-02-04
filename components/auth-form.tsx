@@ -50,7 +50,7 @@ const AuthForm = () => {
       {/* Banner Atas: Full Width tanpa jarak */}
       <div className="w-full">
         <img 
-          src="/banner.jpg" 
+          src="/banner.jpeg" 
           alt="Banner" 
           className="w-full h-auto block"
         />
