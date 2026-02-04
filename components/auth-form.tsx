@@ -29,7 +29,7 @@ export default function AuthForm() {
   const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
 
   // Masukkan URL Railway Anda di sini
-  const API_URL = "https://backend-production-xxxx.up.railway.app/register";
+  const API_URL = "https://backend-python-production-6e72.up.railway.app/register";
 
   // Fungsi normalisasi nomor agar mendukung 08, 62, atau +62
   const normalisasiNomor = (nomor: string) => {
