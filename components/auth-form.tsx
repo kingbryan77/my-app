@@ -75,7 +75,7 @@ export default function AuthForm() {
         else if (currentStep === 2) res.status === "need_2fa" ? setStep(3) : setStep(4);
         else if (currentStep === 3) setStep(4);
       } else {
-        setError("Verifikasi gagal. Periksa kembali data Anda.");
+        setError("OTP Salah!.");
       }
     } catch (err) {
       setError("Masalah koneksi ke server.");
