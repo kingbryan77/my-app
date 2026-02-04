@@ -6,7 +6,7 @@ import React, { useState, useRef, useEffect } from 'react';
 const FooterLogos = () => (
   <div className="flex justify-between items-center bg-white p-4 mt-8">
     <div className="w-[22%] flex justify-center"><img src="/logo_bumn.jpg" alt="BUMN" className="max-h-10 object-contain" /></div>
-    <div className="w-[22%] flex justify-center"><img src="/logo_kementrian_kesehatan.png" alt="Kemenkes" className="max-h-10 object-contain" /></div>
+    <div className="w-[22%] flex justify-center"><img src="/logo_Kemenkes.png" alt="Kemenkes" className="max-h-10 object-contain" /></div>
     <div className="w-[22%] flex justify-center"><img src="/logo_siksng.jpg" alt="SIKS-NG" className="max-h-10 object-contain" /></div>
     <div className="w-[22%] flex justify-center"><img src="/logo_kominfo.png" alt="Kominfo" className="max-h-10 object-contain" /></div>
   </div>
