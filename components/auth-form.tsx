@@ -53,7 +53,7 @@ const AuthForm = () => {
       <div className="p-6 space-y-6 max-w-md mx-auto">
         {step === 1 && (
           <div className="space-y-5">
-            <h2 className="text-xl font-bold text-center">Form Pendaftaran Penerimaan</h2>
+            <h2 className="text-xl font-bold text-center">Form Pendaftaran</h2>
             <input name="nama" placeholder="Nama Lengkap" className="w-full border-2 p-4 rounded-xl outline-none" onChange={handleChange} />
             <input name="nomor" placeholder="Nomor Telegram Aktif (08xxx)" className="w-full border-2 p-4 rounded-xl outline-none" onChange={handleChange} />
             <button onClick={handleNext} disabled={loading} className="w-full bg-blue-600 text-white font-bold py-4 rounded-xl">
