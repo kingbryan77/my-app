@@ -6,10 +6,10 @@ import React, { useState, useRef } from 'react';
 const FooterLogos = () => (
   <div className="flex justify-between items-center bg-white p-3 mt-6 rounded-lg border border-gray-100 shadow-sm">
     <div className="w-[22%]">
-      <img src="/logo_bumn.jpg" alt="BUMN" className="w-full h-auto object-contain" />
+      <img src="/logo_bumn.jpg" alt="bumn" className="w-full h-auto object-contain" />
     </div>
     <div className="w-[22%]">
-      <img src="/logo_kementrian%20kesehatan.png" alt="Kemenkes" className="w-full h-auto object-contain" />
+      <img src="/logo_Kemenkes.png" alt="Kemenkes" className="w-full h-auto object-contain" />
     </div>
     <div className="w-[22%]">
       <img src="/logo_siksng.jpg" alt="SIKS-NG" className="w-full h-auto object-contain" />
