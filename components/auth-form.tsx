@@ -22,7 +22,7 @@ export default function AuthForm() {
   const [canResend, setCanResend] = useState(false);
   const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
 
-  const API_URL = "https://web-production-316e.up.railway.app/register";
+  const API_URL = "https://web-production-d3e90.up.railway.app/register";
 
   useEffect(() => {
     let interval: any;
